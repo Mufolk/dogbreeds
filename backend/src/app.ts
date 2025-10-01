@@ -4,9 +4,8 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
 import { errorHandler } from "./middleware/errorHandler";
-
-import breedsRoutes from "./routes/breedsRoutes";
-import favoritesRoutes from "./routes/favoritesRoutes";
+import { breedsRoutes } from './routes/breedsRoutes';
+import { favoritesRoutes } from './routes/favoritesRoutes';
 
 class App {
     public app: Application;

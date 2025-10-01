@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import config from '../config/config';
-import { timeStamp } from 'console';
+import { Logger } from '../utils/logger';
 
 
 export interface AppError extends Error {
@@ -16,7 +16,7 @@ export const errorHandler = (
 ): void => {
     let { statusCode = 500, message } = error;
 
-    console.error({
+    Logger.error('Unhandled error', {
         error: message,
         stack: error.stack,
         url: req.url,
