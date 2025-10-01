@@ -1,0 +1,39 @@
+### Test Health Check
+GET http://localhost:3001/health
+Accept: application/json
+
+###
+
+### Get all dog breeds
+GET http://localhost:3001/api/breeds
+Accept: application/json
+
+###
+
+### Get 3 images for a specific breed (replace :breed with a valid breed, e.g. bulldog)
+GET http://localhost:3001/api/breeds/bulldog/images
+Accept: application/json
+
+###
+
+### Add a favorite breed
+POST http://localhost:3001/api/favorites
+Content-Type: application/json
+
+{
+  "breed": "bulldog"
+}
+
+###
+
+### Get list of favorite breeds
+GET http://localhost:3001/api/favorites
+Accept: application/json
+
+###
+
+### Remove a favorite breed (replace :breed with a valid favorite breed, e.g. bulldog)
+DELETE http://localhost:3001/api/favorites/bulldog
+Accept: application/json
+
+###

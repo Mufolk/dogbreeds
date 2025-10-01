@@ -30,7 +30,7 @@ export const errorHandler = (
     res.status(statusCode).json({
         error: {
             message,
-            ...(config.nodeEnv === 'development' && { stack: error.stack },)
+            ...(config.nodeEnv === 'development' && { stack: error.stack })
         },
         timeStamp: new Date().toISOString(),
         path: req.originalUrl,

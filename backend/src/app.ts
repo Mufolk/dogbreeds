@@ -50,7 +50,7 @@ class App {
         this.app.use('/api/favorites', favoritesRoutes);
 
         //404 handler
-        this.app.use('*', (req: Request, res: Response) => {
+        this.app.use((req: Request, res: Response) => {
             res.status(404).json({
                 error: 'Route not found',
                 path: req.originalUrl,

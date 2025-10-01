@@ -1,9 +1,20 @@
 import { Request, Response } from 'express';
 import { Logger } from '../utils/logger';
 import type { FavoriteBreed } from '../models/favoriteBreed';
+import { dogApiService } from '../services/dogApiService';
 
 // In-memory storage for favorites (can be replaced with a database later)
 let favoriteBreeds: FavoriteBreed[] = [];
+
+// Cache valid breeds list in controller or service level for performance
+let validBreedsCache: string[] = [];
+
+async function loadValidBreeds() {
+  if (validBreedsCache.length === 0) {
+    validBreedsCache = await dogApiService.getAllBreeds();
+  }
+  return validBreedsCache;
+}
 
 export class FavoritesController {
   /**
@@ -35,16 +46,23 @@ export class FavoritesController {
         return;
       }
 
+      const validBreeds = await loadValidBreeds();
+      if (!validBreeds.includes(breed)) {
+        res.status(400).json({ error: 'Invalid breed name' });
+        return;
+      }
+
+      // Check if breed is already in favorites (by breed name)
+      const exists = favoriteBreeds.find(fav => fav.breed === breed);
+      if (exists) {
+        res.status(409).json({ error: 'Breed is already in favorites' });
+        return;
+      }
+
       const newFavorite: FavoriteBreed = {
         breed,
         addedAt: new Date().toISOString(),
       };
-
-      // Check if breed is already in favorites
-      if (favoriteBreeds.includes(newFavorite)) {
-        res.status(409).json({ error: 'Breed is already in favorites' });
-        return;
-      }
 
       favoriteBreeds.push(newFavorite);
       res.status(201).json({ message: 'Breed added to favorites', breed });
