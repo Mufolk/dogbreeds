@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { Logger } from '../utils/logger';
+import type { FavoriteBreed } from '../models/favoriteBreed';
 
 // In-memory storage for favorites (can be replaced with a database later)
-let favoriteBreeds: string[] = [];
+let favoriteBreeds: FavoriteBreed[] = [];
 
 export class FavoritesController {
   /**
@@ -34,13 +35,18 @@ export class FavoritesController {
         return;
       }
 
+      const newFavorite: FavoriteBreed = {
+        breed,
+        addedAt: new Date().toISOString(),
+      };
+
       // Check if breed is already in favorites
-      if (favoriteBreeds.includes(breed)) {
+      if (favoriteBreeds.includes(newFavorite)) {
         res.status(409).json({ error: 'Breed is already in favorites' });
         return;
       }
 
-      favoriteBreeds.push(breed);
+      favoriteBreeds.push(newFavorite);
       res.status(201).json({ message: 'Breed added to favorites', breed });
     } catch (error) {
       Logger.error('Error in addFavorite:', error);
@@ -64,7 +70,8 @@ export class FavoritesController {
         return;
       }
 
-      const index = favoriteBreeds.indexOf(breed);
+      const index = favoriteBreeds.findIndex(fav => fav.breed === breed);
+      
       if (index === -1) {
         res.status(404).json({ error: 'Breed not found in favorites' });
         return;

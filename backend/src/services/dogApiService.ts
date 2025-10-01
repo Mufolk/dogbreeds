@@ -15,15 +15,25 @@ export interface BreedsListResponse {
 export class DogApiService {
   private baseURL: string;
 
+  // Caching properties
+  private breedsCache: string[] | null = null;
+  private breedImagesCache: Map<string, { images: string[], expiry: number }> = new Map();
+  private CACHE_DURATION_MS = 1000 * 60 * 5; // 5 minutes cache duration
+
   constructor() {
     this.baseURL = process.env.DOG_API_BASE_URL || DOG_API_BASE_URL;
   }
 
   /**
-   * Fetch all dog breeds from Dog CEO API
+   * Fetch all dog breeds from Dog CEO API with caching
    * @returns Promise<string[]> - Array of breed names
    */
   async getAllBreeds(): Promise<string[]> {
+    if (this.breedsCache) {
+      Logger.debug('Returning breeds list from cache');
+      return this.breedsCache;
+    }
+
     try {
       const response = await axios.get<DogApiResponse<BreedsListResponse>>(
         `${this.baseURL}/breeds/list/all`
@@ -40,19 +50,24 @@ export class DogApiService {
       Object.keys(breedsObject).forEach(breed => {
         const subBreeds = breedsObject[breed];
         if (subBreeds.length === 0) {
-          // No sub-breeds, just add the main breed
           breedNames.push(breed);
         } else {
-          // Has sub-breeds, add each combination
           subBreeds.forEach(subBreed => {
             breedNames.push(`${breed}-${subBreed}`);
           });
-          // Also add the main breed
           breedNames.push(breed);
         }
       });
 
-      return breedNames.sort();
+      this.breedsCache = breedNames.sort();
+
+      // Cache expires after 5 minutes:
+      setTimeout(() => {
+        this.breedsCache = null;
+        Logger.debug('Breeds cache expired');
+      }, this.CACHE_DURATION_MS);
+
+      return this.breedsCache;
     } catch (error) {
       Logger.error('Error fetching breeds:', error);
       throw new Error('Failed to fetch dog breeds');
@@ -60,14 +75,21 @@ export class DogApiService {
   }
 
   /**
-   * Fetch random images for a specific breed
+   * Fetch random images for a specific breed with caching
    * @param breed - The breed name
    * @param count - Number of images to fetch (default: 3)
    * @returns Promise<string[]> - Array of image URLs
    */
   async getBreedImages(breed: string, count: number = 3): Promise<string[]> {
+    const cacheEntry = this.breedImagesCache.get(breed);
+    const now = Date.now();
+
+    if (cacheEntry && cacheEntry.expiry > now) {
+      Logger.debug(`Returning images for breed "${breed}" from cache`);
+      return cacheEntry.images;
+    }
+
     try {
-      // Handle sub-breeds (format: "breed-subbreed")
       const breedPath = breed.includes('-') 
         ? breed.replace('-', '/') 
         : breed;
@@ -80,7 +102,11 @@ export class DogApiService {
         throw new Error(`Failed to fetch images for breed: ${breed}`);
       }
 
-      return response.data.message;
+      const images = response.data.message;
+
+      this.breedImagesCache.set(breed, { images, expiry: now + this.CACHE_DURATION_MS });
+
+      return images;
     } catch (error) {
       Logger.error(`Error fetching images for breed ${breed}:`, error);
       throw new Error(`Failed to fetch images for breed: ${breed}`);
