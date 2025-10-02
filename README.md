@@ -40,7 +40,7 @@ A full-stack application for exploring dog breeds with favorites functionality.
    ```bash
    npm run dev
    ```
-4. Access frontend at [http://localhost:3000](http://localhost:3000)
+4. Access frontend at [http://localhost:5173](http://localhost:5173)
 5. Backend API runs on [http://localhost:3001](http://localhost:3001)
 
 ***
