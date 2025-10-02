@@ -11,7 +11,8 @@
     "resolveJsonModule": true,             // Allow importing JSON files
     "declaration": true,                   // Generate .d.ts files
     "declarationMap": true,                // Generate source maps for declarations
-    "sourceMap": true                      // Generate source maps for debugging
+    "sourceMap": true,                      // Generate source maps for debugging
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*"],                 // Include all files in src directory
   "exclude": ["node_modules", "dist"]     // Exclude these directories

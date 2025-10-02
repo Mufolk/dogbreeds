@@ -1,12 +1,14 @@
 import type { AddFavoriteRequest } from "@/types/breed";
 import axios, { type AxiosInstance, type AxiosResponse } from "axios";
 
+const apiBaseUrl = process.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+
 class ApiService {
     private client: AxiosInstance;
 
     constructor() {
         this.client = axios.create({
-            baseURL: '/api',
+            baseURL: apiBaseUrl,
             timeout: 10000, //in ms
             headers: {
                 'Content-Type': 'application/json'
@@ -50,7 +52,8 @@ class ApiService {
 
     async getBreedImages(breed: string): Promise<string[]> {
         try {
-            const response: AxiosResponse<string[]> = await this.client.get('/breeds/${breed}/images')
+            // Use backticks here for proper template string
+            const response: AxiosResponse<string[]> = await this.client.get(`/breeds/${breed}/images`)
             return response.data;
         } catch (error) {
             console.error(`Error fetching images for ${breed}:`, error);
@@ -86,7 +89,6 @@ class ApiService {
             throw error;
         }
     }
-    
 }
 
 export const apiService = new ApiService();

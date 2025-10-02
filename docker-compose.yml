@@ -7,11 +7,23 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-  
+      - PORT=3001
+      - DOG_API_BASE_URL=https://dog.ceo/api
+      - CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
+      - LOG_LEVEL=info
+    env_file:
+      - ./backend/.env
+
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://backend:3001/api
     ports:
       - "80:80"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
