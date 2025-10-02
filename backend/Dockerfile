@@ -3,7 +3,7 @@ FROM node:20-alpine as builder
 
 WORKDIR /app/backend
 
-COPY backend/package*.json ./
+COPY package*.json ./
 RUN npm install
 
 COPY backend/. .
@@ -15,9 +15,9 @@ FROM node:20-alpine
 
 WORKDIR /app/backend
 
-COPY --from=builder /app/backend/dist ./dist
-COPY --from=builder /app/backend/node_modules ./node_modules
-COPY --from=builder /app/backend/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 EXPOSE 8080
 
