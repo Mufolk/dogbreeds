@@ -6,7 +6,7 @@ WORKDIR /app/backend
 COPY package*.json ./
 RUN npm install
 
-COPY backend/. .
+COPY . .
 
 RUN npx tsc
 
