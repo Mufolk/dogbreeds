@@ -37,7 +37,7 @@ class App {
 
     private routes(): void {
         //helath check endpoint
-        this.app.get('/health', (req: Request, res: Response) => {
+        this.app.get('/api/health', (req: Request, res: Response) => {
             res.status(200).json({
                 status: 'OK', 
                 timeStamp: new Date().toISOString(),
