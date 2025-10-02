@@ -17,7 +17,6 @@ COPY --from=builder /app/frontend/dist /usr/share/nginx/html
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY start-nginx.sh /start-nginx.sh
 RUN chmod +x /start-nginx.sh
-
 EXPOSE 80
 
 CMD ["/start-nginx.sh"]
