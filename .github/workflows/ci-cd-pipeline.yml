@@ -9,41 +9,44 @@ on:
       - main
 
 jobs:
-  build_and_deploy:
+  backend:
     runs-on: ubuntu-latest
-    
-    services:
-      docker:
-        image: docker:20.10.16
-        options: --privileged
-        ports:
-          - 3001:3001
-          - 80:80
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: mufolk
           password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build backend image
+        run: docker build -t mufolk/backend:latest -f backend/Dockerfile .
+      - name: Push backend image
+        run: docker push mufolk/backend:latest
+      - name: Deploy backend to Railway
+        uses: bervProject/railway-deploy@main
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        with:
+          service: "backend"
+          environment: "production"
 
-      - name: Build and push Docker images
-        run: |
-          docker compose -f docker-compose.yml build
-          docker compose -f docker-compose.yml push || true
-
-      - name: Deploy with Docker Compose
-        run: |
-          docker compose -f docker-compose.yml up -d
-
-      - name: Cleanup
-        if: always()
-        run: docker system prune -f
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+      - uses: docker/login-action@v2
+        with:
+          username: mufolk
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build frontend image
+        run: docker build -t mufolk/frontend:latest -f frontend/Dockerfile .
+      - name: Push frontend image
+        run: docker push mufolk/frontend:latest
+      - name: Deploy frontend to Railway
+        uses: bervProject/railway-deploy@main
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        with:
+          service: "breeds"
+          environment: "production"
