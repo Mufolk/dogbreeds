@@ -9,17 +9,18 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - DOG_API_BASE_URL=https://dog.ceo/api
-      - CORS_ORIGIN=http://localhost:3000,http://127.0.0.1:3000
+      - CORS_ORIGIN=https://breeds-production.up.railway.app/
+      - ENABLE_DETAILED_ERRORS=false
+      - ENABLE_REQUEST_LOGGING=false
       - LOG_LEVEL=info
 
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_API_BASE_URL: http://backend:3001/api
     ports:
-      - "80:80"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-    depends_on:
-      - backend
+      - VITE_API_BASE_URL=http://localhost:3001/api
+      - VITE_ENABLE_DEBUG=false
+      - VITE_SHOW_DETAILED_ERRORS=false

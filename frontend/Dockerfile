@@ -11,12 +11,14 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm install
 RUN npm run build
 
-FROM nginx:alpine
+FROM node:20-alpine
 
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
-COPY start-nginx.sh /start-nginx.sh
-RUN chmod +x /start-nginx.sh
-EXPOSE 80
+WORKDIR /app/frontend
 
-CMD ["/start-nginx.sh"]
+COPY --from=builder /app/frontend/dist ./dist
+
+RUN npm install -g serve
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist", "-l", "3000"]
