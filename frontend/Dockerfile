@@ -1,24 +1,23 @@
-# Frontend Dockerfile
-
-# Stage 1: Build frontend app
+# Stage 1: Build da aplicação frontend
 FROM node:20-alpine as builder
-WORKDIR /app
 
-COPY package*.json ./
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
 RUN npm install
 
-COPY . .
+COPY frontend/. .
 
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
 
-# Stage 2: Serve com nginx
+# Stage 2: Serve os arquivos estáticos com Nginx
 FROM nginx:alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

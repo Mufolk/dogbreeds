@@ -1,25 +1,23 @@
-# Backend Dockerfile
-
 # Stage 1: Build the application
 FROM node:20-alpine as builder
 
-WORKDIR /app
+WORKDIR /app/backend
 
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm install
 
-COPY . .
+COPY backend/. .
 
 RUN npx tsc
 
 # Stage 2: Create the final image
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /app/backend
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/backend/dist ./dist
+COPY --from=builder /app/backend/node_modules ./node_modules
+COPY --from=builder /app/backend/package*.json ./
 
 EXPOSE 8080
 
