@@ -45,6 +45,12 @@ class App {
             });
         });
 
+        this.app.get('/api', (req: Request, res: Response) => {
+            res.status(200).json({
+                message: "API root endpoint. Use /api/breeds or /api/favorites",
+            });
+        });
+
         //API Routes
         this.app.use('/api/breeds', breedsRoutes);
         this.app.use('/api/favorites', favoritesRoutes);
