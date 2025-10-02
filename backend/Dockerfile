@@ -2,15 +2,12 @@ FROM node:20-alpine as builder
 
 WORKDIR /app/backend
 
-# Copia package.json, package-lock.json e tsconfig.json para o build funcionar corretamente
 COPY package*.json ./
-COPY tsconfig*.json ./
-
 RUN npm install
 
 COPY . .
 
-RUN npx tsc -p tsconfig.json
+RUN npm run build
 
 FROM node:20-alpine
 
