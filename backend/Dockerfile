@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+RUN npx tsc
 
 # Stage 2: Create the final image
 FROM node:20-alpine
