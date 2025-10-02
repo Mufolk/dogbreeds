@@ -3,12 +3,13 @@
     <h1 class="text-3xl font-bold mb-6">❤️ Favorite Breeds</h1>
 
     <div>
-      <ul v-if="favorites.length" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <ul v-if="favorites.length" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
         <BreedCard
-          v-for="breed in favorites"
+          v-for="breed in sortedFavorites"
           :key="breed"
           :breed="breed"
           :isFavorite="true"
+          :image="breedImageMap[breed]"
           @select="openModal(breed)"
           @toggle-favorite="removeFavorite(breed)"
           v-slot:icon
@@ -32,7 +33,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
@@ -41,6 +42,11 @@ const favorites = ref<string[]>([]);
 const modalShow = ref(false);
 const modalBreed = ref('');
 const modalImages = ref<string[]>([]);
+const breedImageMap = ref<Record<string, string>>({});
+
+const sortedFavorites = computed(() =>
+  [...favorites.value].sort((a, b) => a.localeCompare(b))
+);
 
 const loadFavorites = () => {
   axios.get('/api/favorites').then(res => {
@@ -70,5 +76,30 @@ const closeModal = () => {
   modalImages.value = [];
 };
 
+const loadBreedImages = async () => {
+  for (const fav of favorites.value) {
+    // Avoid repeated fetches if already got one
+    if (!breedImageMap.value[fav]) {
+      try {
+        const res = await axios.get(`/api/breeds/${fav}/images`);
+        if (res.data?.length) breedImageMap.value[fav] = res.data[0];
+      } catch (err) {
+        console.error("Image failed load: ", err);
+      }
+    }
+  }
+};
+
 onMounted(loadFavorites);
+watch(favorites, (newBreeds) => {
+  if (newBreeds.length) loadBreedImages();
+});
+
+watch(modalShow, (open) => {
+  if (open) {
+    document.body.classList.add('overflow-hidden');
+  } else {
+    document.body.classList.remove('overflow-hidden');
+  }
+});
 </script>

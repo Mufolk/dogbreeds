@@ -1,5 +1,5 @@
 <template>
-  <div class="relative max-w-md">
+  <div class="relative max-w-md" ref="containerRef">
     <input
       v-model="inputValue"
       @input="onInput"
@@ -27,18 +27,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const props = defineProps<{
-  breeds: string[]
-}>();
-
+const props = defineProps<{ breeds: string[] }>();
 const emit = defineEmits(['filter']);
 
 const inputValue = ref('');
 const showSuggestions = ref(false);
 const debouncedInput = ref('');
 let debounceTimeout: number | null = null;
+const containerRef = ref<HTMLElement | null>(null);
 
 const onInput = () => {
   if (debounceTimeout) clearTimeout(debounceTimeout);
@@ -62,4 +60,20 @@ const selectSuggestion = (suggestion: string) => {
   inputValue.value = suggestion;
   onSearch();
 };
+
+const onClickOutside = (event: MouseEvent) => {
+  if (containerRef.value && !containerRef.value.contains(event.target as Node)) {
+    inputValue.value = '';
+    showSuggestions.value = false;
+    debouncedInput.value = '';
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', onClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', onClickOutside);
+});
 </script>

@@ -6,15 +6,26 @@
     <div v-if="loading" class="text-center py-10 text-xl animate-pulse text-blue-600">Loading...</div>
     <div v-if="error" class="text-red-600 mb-4">{{ error }}</div>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
       <BreedCard
         v-for="breed in filteredBreeds"
         :key="breed"
         :breed="breed"
+        :image="breedImageMap[breed]"
         :isFavorite="isFavorite(breed)"
         @select="openModal(breed)"
         @toggle-favorite="toggleFavorite(breed)"
-      />
+        v-slot:icon="{ isFavorite }"
+      >
+        <span
+          :class="[
+            'cursor-pointer text-xl select-none transition-colors duration-200',
+            isFavorite ? 'text-pink-600' : 'text-gray-400 hover:text-pink-600'
+          ]"
+        >
+          ♥
+        </span>
+      </BreedCard>
     </ul>
 
     <BreedModal
@@ -29,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
@@ -44,6 +55,7 @@ const modalShow = ref(false);
 const modalBreed = ref('');
 const modalImages = ref<string[]>([]);
 const searchTerm = ref('');
+const breedImageMap = ref<Record<string, string>>({});
 
 const searchBreeds = (search: string) => {
   searchTerm.value = search;
@@ -103,9 +115,35 @@ const closeModal = () => {
   modalImages.value = [];
 };
 
+const loadBreedImages = async () => {
+  for (const breed of breeds.value) {
+    // Avoid repeated fetches if already got one
+    if (!breedImageMap.value[breed]) {
+      try {
+        const res = await axios.get(`/api/breeds/${breed}/images`);
+        if (res.data?.length) breedImageMap.value[breed] = res.data[0];
+      } catch {
+        // If error, don't set image
+      }
+    }
+  }
+};
+
 onMounted(() => {
   loadBreeds();
   loadFavorites();
+});
+
+watch(breeds, (newBreeds) => {
+  if (newBreeds.length) loadBreedImages();
+});
+
+watch(modalShow, (open) => {
+  if (open) {
+    document.body.classList.add('overflow-hidden');
+  } else {
+    document.body.classList.remove('overflow-hidden');
+  }
 });
 </script>
 

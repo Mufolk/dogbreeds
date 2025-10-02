@@ -3,7 +3,7 @@
     <div v-if="show" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <transition name="modal-popup">
         <div
-          class="bg-white rounded-xl shadow-xl p-8 max-w-3xl w-full relative"
+          class="bg-white rounded-xl shadow-xl p-4 sm:p-8 w-full max-w-xs sm:max-w-2xl relative flex flex-col overflow-auto max-h-[80vh]"
           v-if="show"
           @click.outside="close"
         >
@@ -15,19 +15,25 @@
             &times;
           </button>
 
-          <h2 class="text-2xl font-bold mb-6 capitalize text-center">{{ breed }}</h2>
+          <h2 class="text-2xl font-bold mb-4 capitalize text-center">{{ breed }}</h2>
 
-          <div class="grid grid-cols-3 gap-6">
-            <div
-              v-for="img in images"
-              :key="img"
-              class="rounded overflow-hidden shadow-md hover:scale-105 transition-transform"
-            >
-              <img :src="img" :alt="breed" class="object-cover w-full h-48" />
-            </div>
+          <!-- images now stack nicely -->
+          <div class="flex flex-col gap-3 w-full">
+          <div
+            v-for="img in images"
+            :key="img"
+            class="flex items-center justify-center bg-gray-100 rounded shadow w-full h-60"
+          >
+            <img
+              :src="img"
+              :alt="breed"
+              class="object-contain max-h-full max-w-full rounded"
+              style="width:auto; height:auto; max-height:14rem; max-width:100%;"
+            />
           </div>
+        </div>
 
-          <div class="mt-6 flex justify-center space-x-6">
+          <div class="mt-6 flex justify-center">
             <button
               @click="onToggleFavorite"
               class="rounded border px-6 py-2 font-semibold transition-colors duration-300"
@@ -42,6 +48,7 @@
     </div>
   </transition>
 </template>
+
 
 <script lang="ts" setup>
 import { defineEmits, defineProps } from 'vue';
