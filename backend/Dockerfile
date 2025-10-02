@@ -17,6 +17,6 @@ COPY --from=builder /app/backend/dist ./dist
 COPY --from=builder /app/backend/node_modules ./node_modules
 COPY --from=builder /app/backend/package*.json ./
 
-EXPOSE 8080
+EXPOSE 3001
 
 CMD ["node", "dist/server.js"]
