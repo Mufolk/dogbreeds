@@ -3,7 +3,7 @@ import config from "./config/config";
 import { Logger } from "./utils/logger";
 
 const startServer = (): void => {
-    const server = app.listen(config.port, () => {
+    const server = app.listen(config.port || 3001, '0.0.0.0', () => {
         Logger.info(`🚀 Server running in ${config.nodeEnv} mode on port ${config.port}`);
         Logger.info(`📍 API available at: http://localhost:${config.port}`);
         Logger.info(`🏥 Health check: http://localhost:${config.port}/health`);
