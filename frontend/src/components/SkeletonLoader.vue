@@ -14,7 +14,7 @@
 
     <!-- Grid Skeleton -->
     <div v-else-if="type === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      <div v-for="i in count" :key="i" class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-xl shadow animate-pulse">
+      <div v-for="i in count" :key="i" class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-xl shadow animate-pulse group cursor-pointer hover:bg-blue-100 transition">
         <div class="w-full sm:w-28 h-48 sm:h-28 mb-3 sm:mb-0 sm:mr-4 flex-shrink-0 rounded-lg bg-gray-200"></div>
         <div class="flex-1 flex justify-between items-center w-full min-w-0">
           <div class="h-6 bg-gray-200 rounded w-3/4"></div>
