@@ -34,9 +34,9 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, watch, computed } from 'vue';
-import axios from 'axios';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
+import apiService from '@/services/api';
 
 const favorites = ref<string[]>([]);
 const modalShow = ref(false);
@@ -48,14 +48,21 @@ const sortedFavorites = computed(() =>
   [...favorites.value].sort((a, b) => a.localeCompare(b))
 );
 
-const loadFavorites = () => {
-  axios.get('/api/favorites').then(res => {
-    favorites.value = res.data.map((fav: any) => fav.breed);
-  });
+const loadFavorites = async () => {
+  try {
+    favorites.value = await apiService.getFavorites();
+  } catch (error) {
+    console.error('Error loading favorites:', error);
+  }
 };
 
-const removeFavorite = (breed: string) => {
-  axios.delete(`/api/favorites/${breed}`).then(loadFavorites);
+const removeFavorite = async (breed: string) => {
+  try {
+    await apiService.removeFavorite(breed);
+    await loadFavorites();
+  } catch (error) {
+    console.error('Error removing favorite:', error);
+  }
 };
 
 const openModal = async (breed: string) => {
@@ -63,9 +70,9 @@ const openModal = async (breed: string) => {
   modalShow.value = true;
   modalImages.value = [];
   try {
-    const res = await axios.get(`/api/breeds/${breed}/images`);
-    modalImages.value = res.data;
-  } catch {
+    modalImages.value = await apiService.getBreedImages(breed);
+  } catch (error) {
+    console.error('Error loading breed images:', error);
     modalImages.value = [];
   }
 };
@@ -81,10 +88,10 @@ const loadBreedImages = async () => {
     // Avoid repeated fetches if already got one
     if (!breedImageMap.value[fav]) {
       try {
-        const res = await axios.get(`/api/breeds/${fav}/images`);
-        if (res.data?.length) breedImageMap.value[fav] = res.data[0];
-      } catch (err) {
-        console.error("Image failed load: ", err);
+        const images = await apiService.getBreedImages(fav);
+        if (images?.length) breedImageMap.value[fav] = images[0];
+      } catch (error) {
+        console.error(`Error loading images for ${fav}:`, error);
       }
     }
   }

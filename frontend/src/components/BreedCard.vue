@@ -3,13 +3,17 @@
     class="flex flex-col sm:flex-row items-center p-4 bg-white rounded-xl shadow group cursor-pointer hover:bg-blue-100 transition"
     @click="$emit('select')"
   >
-    <!-- Image above title on mobile, left on desktop -->
-    <img
+    <!-- Image container with consistent sizing -->
+    <div 
       v-if="image"
-      :src="image"
-      alt="breed"
-      class="w-full sm:w-28 h-28 object-cover rounded mb-3 sm:mb-0 sm:mr-4 flex-shrink-0"
-    />
+      class="w-full sm:w-28 h-48 sm:h-28 mb-3 sm:mb-0 sm:mr-4 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center"
+    >
+      <img
+        :src="image"
+        :alt="breed"
+        class="w-full h-full object-cover"
+      />
+    </div>
     <div class="flex-1 flex justify-between items-center w-full min-w-0">
       <span class="capitalize font-semibold text-lg truncate">{{ breed }}</span>
       <button @click.stop="$emit('toggle-favorite')" class="text-2xl flex-shrink-0">
@@ -27,5 +31,10 @@ defineProps<{
   breed: string;
   isFavorite: boolean;
   image?: string;
+}>();
+
+defineEmits<{
+  select: [];
+  'toggle-favorite': [];
 }>();
 </script>

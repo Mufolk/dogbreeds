@@ -6,7 +6,7 @@
     <div v-if="loading" class="text-center py-10 text-xl animate-pulse text-blue-600">Loading...</div>
     <div v-if="error" class="text-red-600 mb-4">{{ error }}</div>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6">
+    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <BreedCard
         v-for="breed in filteredBreeds"
         :key="breed"
@@ -41,10 +41,10 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import axios from 'axios';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
 import SearchInput from '@/components/SearchInput.vue';
+import apiService from '@/services/api';
 
 const breeds = ref<string[]>([]);
 const loading = ref(false);
@@ -72,35 +72,48 @@ const openModal = async (breed: string) => {
   modalShow.value = true;
   modalImages.value = [];
   try {
-    const res = await axios.get(`/api/breeds/${breed}/images`);
-    modalImages.value = res.data;
+    modalImages.value = await apiService.getBreedImages(breed);
   } catch {
     modalImages.value = [];
   }
 };
 
-const loadFavorites = () => {
-  axios.get('/api/favorites').then(res => {
-    favorites.value = res.data.map((fav: any) => fav.breed);
-  });
+const loadFavorites = async () => {
+  try {
+    favorites.value = await apiService.getFavorites();
+  } catch (error) {
+    console.error('Error loading favorites:', error);
+  }
 };
 
-const loadBreeds = () => {
+const loadBreeds = async () => {
   loading.value = true;
   error.value = '';
-  axios.get('/api/breeds')
-    .then(res => breeds.value = res.data)
-    .catch(() => error.value = 'Failed to load breeds')
-    .finally(() => loading.value = false);
+  try {
+    breeds.value = await apiService.getAllBreeds();
+  } catch (err) {
+    error.value = 'Failed to load breeds';
+    console.error('Error loading breeds:', err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const isFavorite = (breed: string) => favorites.value.includes(breed);
 
-const toggleFavorite = (breed: string) => {
-  if (isFavorite(breed)) {
-    axios.delete(`/api/favorites/${breed}`).then(loadFavorites);
-  } else {
-    axios.post('/api/favorites', { breed }).then(loadFavorites);
+const toggleFavorite = async (breed: string) => {
+  console.log('toggleFavorite called with breed:', breed);
+  try {
+    if (isFavorite(breed)) {
+      console.log('Removing favorite:', breed);
+      await apiService.removeFavorite(breed);
+    } else {
+      console.log('Adding favorite:', breed);
+      await apiService.addFavorite(breed);
+    }
+    await loadFavorites();
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
   }
 };
 
@@ -116,13 +129,16 @@ const closeModal = () => {
 };
 
 const loadBreedImages = async () => {
-  for (const breed of breeds.value) {
+  // Only load images for the first few breeds to avoid overwhelming the API
+  const breedsToLoad = breeds.value.slice(0, 10);
+  for (const breed of breedsToLoad) {
     // Avoid repeated fetches if already got one
     if (!breedImageMap.value[breed]) {
       try {
-        const res = await axios.get(`/api/breeds/${breed}/images`);
-        if (res.data?.length) breedImageMap.value[breed] = res.data[0];
-      } catch {
+        const images = await apiService.getBreedImages(breed);
+        if (images?.length) breedImageMap.value[breed] = images[0];
+      } catch (error) {
+        console.error(`Error loading images for ${breed}:`, error);
         // If error, don't set image
       }
     }

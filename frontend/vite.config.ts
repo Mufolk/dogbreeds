@@ -18,8 +18,9 @@ export default defineConfig({
     environment: 'jsdom', // Use JSDOM for browser-like environment
   },
   server: {
-  proxy: {
-    '/api': 'http://localhost:3001'
+    // Only use proxy in development mode, not in Docker
+    proxy: process.env.NODE_ENV === 'development' ? {
+      '/api': 'http://localhost:3001'
+    } : undefined
   }
-}
 })

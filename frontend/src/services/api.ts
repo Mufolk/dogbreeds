@@ -63,8 +63,8 @@ class ApiService {
 
     async getFavorites(): Promise<string[]> {
         try {
-            const response: AxiosResponse<string[]> = await this.client.get('/favorites')
-            return response.data;
+            const response: AxiosResponse<Array<{breed: string, addedAt: string}>> = await this.client.get('/favorites')
+            return response.data.map(fav => fav.breed);
         } catch (error) {
             console.error(`Error fetching favorites`, error);
             throw error;
