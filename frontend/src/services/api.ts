@@ -40,9 +40,9 @@ class ApiService {
         )
     }
 
-    async getAllBreeds(): Promise<string[]> {
+    async getAllBreeds(page: number = 1, limit: number = 30): Promise<{breeds: string[], pagination: any}> {
         try {
-            const response: AxiosResponse<string[]> = await this.client.get('/breeds')
+            const response: AxiosResponse<{breeds: string[], pagination: any}> = await this.client.get(`/breeds?page=${page}&limit=${limit}`)
             return response.data;
         } catch (error) {
             console.log('Error fetching breeds: ', error);

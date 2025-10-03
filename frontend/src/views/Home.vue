@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-6xl mx-auto p-4">
     <h1 class="text-3xl font-bold mb-4">🐶 Dog Breeds Explorer</h1>
-    <SearchInput :breeds="breeds" @filter="searchBreeds" />
+    <SearchInput :breeds="allBreeds" @filter="searchBreeds" />
 
-    <div v-if="loading" class="text-center py-10 text-xl animate-pulse text-blue-600">Loading...</div>
+    <div v-if="loading && currentPage === 1" class="text-center py-10 text-xl animate-pulse text-blue-600">Loading...</div>
     <div v-if="error" class="text-red-600 mb-4">{{ error }}</div>
 
     <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -28,6 +28,16 @@
       </BreedCard>
     </ul>
 
+    <!-- Loading more indicator -->
+    <div v-if="loadingMore" class="text-center py-6 text-lg animate-pulse text-blue-600">
+      Loading more dogs...
+    </div>
+
+    <!-- End of results indicator -->
+    <div v-if="!hasMoreBreeds && !loading && breeds.length > 0" class="text-center py-6 text-gray-500">
+      🐕 You've seen all the dog breeds!
+    </div>
+
     <BreedModal
       :show="modalShow"
       :breed="modalBreed"
@@ -40,14 +50,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
 import SearchInput from '@/components/SearchInput.vue';
 import apiService from '@/services/api';
 
 const breeds = ref<string[]>([]);
+const allBreeds = ref<string[]>([]);
 const loading = ref(false);
+const loadingMore = ref(false);
 const error = ref('');
 const search = ref('');
 const favorites = ref<string[]>([]);
@@ -56,6 +68,12 @@ const modalBreed = ref('');
 const modalImages = ref<string[]>([]);
 const searchTerm = ref('');
 const breedImageMap = ref<Record<string, string>>({});
+
+// Pagination state
+const currentPage = ref(1);
+const hasMoreBreeds = ref(true);
+const totalBreeds = ref(0);
+const ITEMS_PER_PAGE = 30;
 
 const searchBreeds = (search: string) => {
   searchTerm.value = search;
@@ -86,17 +104,42 @@ const loadFavorites = async () => {
   }
 };
 
-const loadBreeds = async () => {
-  loading.value = true;
+const loadBreeds = async (page: number = 1, append: boolean = false) => {
+  if (page === 1) {
+    loading.value = true;
+  } else {
+    loadingMore.value = true;
+  }
+  
   error.value = '';
+  
   try {
-    breeds.value = await apiService.getAllBreeds();
+    const response = await apiService.getAllBreeds(page, ITEMS_PER_PAGE);
+    
+    if (append) {
+      breeds.value = [...breeds.value, ...response.breeds];
+    } else {
+      breeds.value = response.breeds;
+    }
+    
+    allBreeds.value = response.breeds; // For search functionality
+    currentPage.value = response.pagination.currentPage;
+    hasMoreBreeds.value = response.pagination.hasNextPage;
+    totalBreeds.value = response.pagination.totalBreeds;
+    
   } catch (err) {
     error.value = 'Failed to load breeds';
     console.error('Error loading breeds:', err);
   } finally {
     loading.value = false;
+    loadingMore.value = false;
   }
+};
+
+const loadMoreBreeds = async () => {
+  if (!hasMoreBreeds.value || loadingMore.value) return;
+  
+  await loadBreeds(currentPage.value + 1, true);
 };
 
 const isFavorite = (breed: string) => favorites.value.includes(breed);
@@ -121,16 +164,13 @@ const onModalToggleFavorite = () => {
   toggleFavorite(modalBreed.value);
 };
 
-
 const closeModal = () => {
   modalShow.value = false;
   modalBreed.value = '';
   modalImages.value = [];
 };
 
-const loadBreedImages = async () => {
-  // Only load images for the first few breeds to avoid overwhelming the API
-  const breedsToLoad = breeds.value.slice(0, 10);
+const loadBreedImages = async (breedsToLoad: string[]) => {
   for (const breed of breedsToLoad) {
     // Avoid repeated fetches if already got one
     if (!breedImageMap.value[breed]) {
@@ -145,13 +185,36 @@ const loadBreedImages = async () => {
   }
 };
 
+// Infinite scroll handler
+const handleScroll = () => {
+  if (searchTerm.value) return; // Don't load more when searching
+  
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.scrollHeight;
+  
+  // Load more when user is 200px from bottom
+  if (scrollTop + windowHeight >= documentHeight - 200) {
+    loadMoreBreeds();
+  }
+};
+
 onMounted(() => {
-  loadBreeds();
+  loadBreeds(1);
   loadFavorites();
+  window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll);
 });
 
 watch(breeds, (newBreeds) => {
-  if (newBreeds.length) loadBreedImages();
+  if (newBreeds.length) {
+    // Load images for the newly added breeds
+    const newBreedsToLoad = newBreeds.slice(-ITEMS_PER_PAGE);
+    loadBreedImages(newBreedsToLoad);
+  }
 });
 
 watch(modalShow, (open) => {
@@ -159,6 +222,18 @@ watch(modalShow, (open) => {
     document.body.classList.add('overflow-hidden');
   } else {
     document.body.classList.remove('overflow-hidden');
+  }
+});
+
+// Reset pagination when search changes
+watch(searchTerm, (newTerm) => {
+  if (newTerm) {
+    // When searching, show all breeds that match
+    const term = newTerm.toLowerCase();
+    breeds.value = allBreeds.value.filter(b => b.toLowerCase().includes(term));
+  } else {
+    // When not searching, reset to paginated view
+    loadBreeds(1);
   }
 });
 </script>
