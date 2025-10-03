@@ -17,21 +17,28 @@
 
           <h2 class="text-2xl font-bold mb-4 capitalize text-center">{{ breed }}</h2>
 
-          <!-- images now stack nicely -->
-          <div class="flex flex-col gap-3 w-full">
-          <div
-            v-for="img in images"
-            :key="img"
-            class="flex items-center justify-center bg-gray-100 rounded shadow w-full h-60"
-          >
-            <img
-              :src="img"
-              :alt="breed"
-              class="object-contain max-h-full max-w-full rounded"
-              style="width:auto; height:auto; max-height:14rem; max-width:100%;"
-            />
+          <!-- Loading state for images -->
+          <div v-if="images.length === 0" class="flex flex-col gap-3 w-full">
+            <div class="flex items-center justify-center bg-gray-100 rounded shadow w-full h-60">
+              <LoadingSpinner size="lg" text="Loading images..." />
+            </div>
           </div>
-        </div>
+
+          <!-- Images display -->
+          <div v-else class="flex flex-col gap-3 w-full">
+            <div
+              v-for="img in images"
+              :key="img"
+              class="flex items-center justify-center bg-gray-100 rounded shadow w-full h-60"
+            >
+              <img
+                :src="img"
+                :alt="breed"
+                class="object-contain max-h-full max-w-full rounded"
+                style="width:auto; height:auto; max-height:14rem; max-width:100%;"
+              />
+            </div>
+          </div>
 
           <div class="mt-6 flex justify-center">
             <button
@@ -52,6 +59,7 @@
 
 <script lang="ts" setup>
 import { defineEmits, defineProps } from 'vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 
 const props = defineProps<{
   show: boolean;

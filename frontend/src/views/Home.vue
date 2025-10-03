@@ -3,10 +3,19 @@
     <h1 class="text-3xl font-bold mb-4">🐶 Dog Breeds Explorer</h1>
     <SearchInput :breeds="allBreeds" @filter="searchBreeds" />
 
-    <div v-if="loading && currentPage === 1" class="text-center py-10 text-xl animate-pulse text-blue-600">Loading...</div>
-    <div v-if="error" class="text-red-600 mb-4">{{ error }}</div>
+    <!-- Error display -->
+    <div v-if="error" class="max-w-md mx-auto mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-center">
+        <span class="text-red-500 mr-2">⚠️</span>
+        <p class="text-red-700">{{ error }}</p>
+      </div>
+    </div>
 
-    <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+    <!-- Initial loading skeleton -->
+    <SkeletonLoader v-if="loading && currentPage === 1" type="grid" :count="6" />
+
+    <!-- Breeds grid -->
+    <ul v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
       <BreedCard
         v-for="breed in filteredBreeds"
         :key="breed"
@@ -29,8 +38,8 @@
     </ul>
 
     <!-- Loading more indicator -->
-    <div v-if="loadingMore" class="text-center py-6 text-lg animate-pulse text-blue-600">
-      Loading more dogs...
+    <div v-if="loadingMore" class="text-center py-6">
+      <LoadingSpinner text="Loading more dogs..." />
     </div>
 
     <!-- End of results indicator -->
@@ -54,6 +63,8 @@ import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import BreedCard from '@/components/BreedCard.vue';
 import BreedModal from '@/components/BreedModal.vue';
 import SearchInput from '@/components/SearchInput.vue';
+import SkeletonLoader from '@/components/SkeletonLoader.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import apiService from '@/services/api';
 
 const breeds = ref<string[]>([]);
