@@ -2,20 +2,17 @@
 import { mount } from '@vue/test-utils'
 import Favorites from '../Favorites.vue'
 import { describe, expect, it, vi } from 'vitest'
-import axios from 'axios'
 
-vi.mock('axios')
-const mockedAxios = axios as any
-
-mockedAxios.get.mockImplementation((url: string) => {
-  if (url === '/api/favorites') {
-    return Promise.resolve({ data: [{ breed: 'bulldog' }, { breed: 'husky' }] })
+// Mock the API service
+vi.mock('@/services/api', () => ({
+  default: {
+    getFavorites: vi.fn().mockResolvedValue(['bulldog', 'husky']),
+    getBreedImages: vi.fn().mockResolvedValue(['img1.jpg', 'img2.jpg', 'img3.jpg']),
+    addFavorite: vi.fn().mockResolvedValue({}),
+    removeFavorite: vi.fn().mockResolvedValue({}),
+    getAllBreeds: vi.fn().mockResolvedValue({ breeds: [], pagination: {} })
   }
-  if (url.startsWith('/api/breeds/')) {
-    return Promise.resolve({ data: ['img1.jpg', 'img2.jpg', 'img3.jpg'] })
-  }
-  return Promise.resolve({ data: [] })
-})
+}))
 
 describe('Favorites.vue', () => {
   it('renders heading', () => {
@@ -25,6 +22,9 @@ describe('Favorites.vue', () => {
 
   it('shows no favorites message when empty', async () => {
     const wrapper = mount(Favorites)
+    // Wait for the component to load and then set favorites to empty
+    await wrapper.vm.$nextTick()
+    await new Promise(resolve => setTimeout(resolve, 100)) // Wait for async operations
     ;(wrapper.vm as any).favorites = []
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toContain('No favorites selected yet.')

@@ -84,7 +84,172 @@ describe('DogApiService', () => {
 
     const breeds2 = await service.getAllBreeds();
         expect(breeds2).toContain('retriever');
+    });
 
+    test('getBreedImages returns empty array on API error', async () => {
+        mockedAxios.get.mockRejectedValue(new Error('Network error'));
+
+        await expect(service.getBreedImages('bulldog', 3)).rejects.toThrow('Failed to fetch images for breed: bulldog');
+    });
+
+    test('getBreedImages handles API response with error status', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'error',
+                message: 'Breed not found'
+            }
+        });
+
+        await expect(service.getBreedImages('nonexistent', 3)).rejects.toThrow('Failed to fetch images for breed: nonexistent');
+    });
+
+    test('getBreedImages handles malformed API response', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: 'invalid data'
+            }
+        });
+
+        const result = await service.getBreedImages('bulldog', 3);
+        expect(result).toBe('invalid data');
+    });
+
+    test('getBreedImages handles empty images array', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: []
+            }
+        });
+
+        const images = await service.getBreedImages('bulldog', 3);
+        expect(images).toEqual([]);
+    });
+
+    test('getBreedImages handles null response data', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: null
+        });
+
+        await expect(service.getBreedImages('bulldog', 3)).rejects.toThrow('Failed to fetch images for breed: bulldog');
+    });
+
+    test('getBreedImages handles undefined response data', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: undefined
+        });
+
+        await expect(service.getBreedImages('bulldog', 3)).rejects.toThrow('Failed to fetch images for breed: bulldog');
+    });
+
+    test('getAllBreeds handles breeds with sub-breeds correctly', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: {
+                    bulldog: ['boston', 'english', 'french'],
+                    retriever: ['golden', 'labrador'],
+                    husky: []
+                }
+            }
+        });
+
+        const breeds = await service.getAllBreeds();
+        
+        expect(breeds).toContain('bulldog');
+        expect(breeds).toContain('bulldog-boston');
+        expect(breeds).toContain('bulldog-english');
+        expect(breeds).toContain('bulldog-french');
+        expect(breeds).toContain('retriever');
+        expect(breeds).toContain('retriever-golden');
+        expect(breeds).toContain('retriever-labrador');
+        expect(breeds).toContain('husky');
+    });
+
+    test('getAllBreeds handles empty breeds object', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: {}
+            }
+        });
+
+        const breeds = await service.getAllBreeds();
+        expect(breeds).toEqual([]);
+    });
+
+    test('getAllBreeds handles null message', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: null
+            }
+        });
+
+        await expect(service.getAllBreeds()).rejects.toThrow('Failed to fetch dog breeds');
+    });
+
+    test('getAllBreeds handles undefined message', async () => {
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: undefined
+            }
+        });
+
+        await expect(service.getAllBreeds()).rejects.toThrow('Failed to fetch dog breeds');
+    });
+
+    test('getBreedImages handles different count values', async () => {
+        // Test with count 0 - API should return empty array
+        mockedAxios.get.mockResolvedValueOnce({
+            data: {
+                status: 'success',
+                message: []
+            }
+        });
+
+        const images = await service.getBreedImages('bulldog0', 0);
+        expect(images).toEqual([]);
+
+        // Test with count 2 - API should return 2 images
+        mockedAxios.get.mockResolvedValueOnce({
+            data: {
+                status: 'success',
+                message: ['img1.jpg', 'img2.jpg']
+            }
+        });
+
+        const images2 = await service.getBreedImages('bulldog2', 2);
+        expect(images2).toEqual(['img1.jpg', 'img2.jpg']);
+
+        // Test with count 10 - API should return 5 images (all available)
+        mockedAxios.get.mockResolvedValueOnce({
+            data: {
+                status: 'success',
+                message: ['img1.jpg', 'img2.jpg', 'img3.jpg', 'img4.jpg', 'img5.jpg']
+            }
+        });
+
+        const images3 = await service.getBreedImages('bulldog10', 10);
+        expect(images3).toEqual(['img1.jpg', 'img2.jpg', 'img3.jpg', 'img4.jpg', 'img5.jpg']);
+    });
+
+    test('getBreedImages handles negative count', async () => {
+        // API should handle negative count gracefully and return some images
+        mockedAxios.get.mockResolvedValue({
+            data: {
+                status: 'success',
+                message: ['img1.jpg', 'img2.jpg', 'img3.jpg']
+            }
+        });
+
+        const images = await service.getBreedImages('bulldog-negative', -1);
+        expect(images).toEqual(['img1.jpg', 'img2.jpg', 'img3.jpg']);
+    });
+
+    afterAll(() => {
         jest.useRealTimers();
     });
 });

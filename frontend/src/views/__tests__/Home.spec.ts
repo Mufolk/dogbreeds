@@ -2,30 +2,26 @@
 import { mount } from '@vue/test-utils'
 import Home from '../Home.vue'
 import { describe, expect, it, vi } from 'vitest'
-import axios from 'axios'
 
-vi.mock('axios')
-const mockedAxios = axios as any
-
-mockedAxios.get.mockImplementation((url: string) => {
-  if (url === '/api/breeds') {
-    return Promise.resolve({ data: ['bulldog', 'husky'] })
+// Mock the API service
+vi.mock('@/services/api', () => ({
+  default: {
+    getFavorites: vi.fn().mockResolvedValue(['bulldog']),
+    getBreedImages: vi.fn().mockResolvedValue(['img1.jpg', 'img2.jpg', 'img3.jpg']),
+    addFavorite: vi.fn().mockResolvedValue({}),
+    removeFavorite: vi.fn().mockResolvedValue({}),
+    getAllBreeds: vi.fn().mockResolvedValue({ 
+      breeds: ['bulldog', 'husky'], 
+      pagination: { currentPage: 1, totalPages: 1, totalBreeds: 2, hasNextPage: false }
+    })
   }
-  if (url.startsWith('/api/breeds/')) {
-    return Promise.resolve({ data: ['img1.jpg', 'img2.jpg', 'img3.jpg'] })
-  }
-  if (url === '/api/favorites') {
-    return Promise.resolve({ data: [{ breed: 'bulldog' }] })
-  }
-  return Promise.resolve({ data: [] })
-})
+}))
 
 describe('Home.vue', () => {
   it('shows loading indicator', async () => {
     const wrapper = mount(Home)
-    ;(wrapper.vm as any).loading = true
-    await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toContain('Loading...')
+    // The component shows skeleton loader when loading
+    expect(wrapper.findComponent({ name: 'SkeletonLoader' }).exists()).toBe(true)
   })
 
   it('shows error message', async () => {
@@ -37,9 +33,10 @@ describe('Home.vue', () => {
 
   it('renders breed list', async () => {
     const wrapper = mount(Home)
-    const vm = wrapper.vm as any
-    await vm.loadBreeds()
+    // Wait for the component to load
     await wrapper.vm.$nextTick()
+    await new Promise(resolve => setTimeout(resolve, 100))
+    // The component should show breeds from the mocked API
     expect(wrapper.text()).toContain('bulldog')
     expect(wrapper.text()).toContain('husky')
   })
