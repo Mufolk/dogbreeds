@@ -4,22 +4,32 @@ import { Logger } from '../utils/logger';
 
 export class BreedsController {
   /**
-   * Get all dog breeds with pagination
-   * GET /api/breeds?page=1&limit=30
+   * Get all dog breeds with pagination and optional search
+   * GET /api/breeds?page=1&limit=30&search=golden
    */
   async getAllBreeds(req: Request, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 30;
+      const search = req.query.search as string;
       
       const breeds = await dogApiService.getAllBreeds();
+      
+      // Filter breeds if search term is provided
+      let filteredBreeds = breeds;
+      if (search) {
+        const searchTerm = search.toLowerCase();
+        filteredBreeds = breeds.filter(breed => 
+          breed.toLowerCase().includes(searchTerm)
+        );
+      }
       
       // Calculate pagination
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedBreeds = breeds.slice(startIndex, endIndex);
+      const paginatedBreeds = filteredBreeds.slice(startIndex, endIndex);
       
-      const totalBreeds = breeds.length;
+      const totalBreeds = filteredBreeds.length;
       const totalPages = Math.ceil(totalBreeds / limit);
       const hasNextPage = page < totalPages;
       const hasPrevPage = page > 1;
