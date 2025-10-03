@@ -6,6 +6,7 @@ import cors from "cors";
 import { errorHandler } from "./middleware/errorHandler";
 import { breedsRoutes } from './routes/breedsRoutes';
 import { favoritesRoutes } from './routes/favoritesRoutes';
+import { Logger } from "./utils/logger";
 
 class App {
     public app: Application;
@@ -22,9 +23,12 @@ class App {
         this.app.use(helmet());
 
         //CORS setup
+        Logger.info('CORS Origins configured:', config.corsOrigin);
         this.app.use(cors({
             origin: config.corsOrigin,
             credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
         }))
 
         //request logging
