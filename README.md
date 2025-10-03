@@ -22,7 +22,7 @@ A full-stack application for exploring dog breeds with favorites functionality.
 ***
 
 ## Prerequisites
-- Node.js (v18 or higher)
+- Node.js (v20 or higher)
 - npm or yarn
 - Docker (optional)
 
@@ -40,7 +40,7 @@ A full-stack application for exploring dog breeds with favorites functionality.
    ```bash
    npm run dev
    ```
-4. Access frontend at [http://localhost:5173](http://localhost:5173)
+4. Access frontend at [http://localhost:3000](http://localhost:3000)
 5. Backend API runs on [http://localhost:3001](http://localhost:3001)
 
 ***
