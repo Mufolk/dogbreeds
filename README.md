@@ -122,15 +122,15 @@ dog-breeds-explorer/
 
 ### Using Docker (Optional)
 
-- Backend Docker setup is functional with multi-stage builds.
-- Frontend Docker container currently has a proxy bug related to Vue inside Docker requiring debugging.
+- **Backend**: Docker setup is functional with multi-stage builds and production-ready
+- **Frontend**: Docker container works for development but has nginx proxy reverse issues in production deployment
 
-To run both frontend and backend with Docker Compose (experimental):
+To run both frontend and backend with Docker Compose:
 ```bash
 docker-compose up --build
 ```
 
-If proxy issues occur, run frontend and backend locally instead of inside containers.
+For production deployment, consider using alternative platforms for the frontend due to nginx proxy configuration challenges.
 
 ***
 
@@ -148,43 +148,45 @@ From the `frontend` directory:
 npm run test
 ```
 
-Testing includes unit and integration tests using Jest and Vitest.
+**Note**: Testing includes unit and integration tests using Jest and Vitest.
 
 ***
 
 ## Deployment Information
 
-- Backend is deployed on Railway accessible at:
+- **Backend**: Deployed on Railway
   - [Breeds API](https://backend-production-fb36.up.railway.app/api/breeds)
   - [Favorites API](https://backend-production-fb36.up.railway.app/api/favorites)
   - [Health check](https://backend-production-fb36.up.railway.app/api/health)
 
-- Frontend deployment is pending resolution of Docker proxy issues; alternative platforms will be considered.
+- **Frontend**: Deployment pending resolution of nginx proxy reverse configuration issues in production; alternative platforms will be considered.
 
 ***
 
 ## Known Issues and Assumptions
 
-- Frontend Docker container proxy bug hampers backend communication. Vue's Docker networking behavior differs from React and needs investigation.
-- Backend Docker container and Railway deployment are stable and verified.
-- Frontend code uses composables and models but organization can be improved.
-- CI/CD via GitHub Actions is implemented for testing, building, and deploying.
-- Backend caches API responses for performance.
-- Tailwind CSS is used for responsive styling on frontend.
+- **Frontend**: nginx proxy reverse configuration issues in production deployment (development Docker setup works fine)
+- **Backend**: Docker container and Railway deployment are stable and verified
+- **Frontend Code**: Uses composables and models with improved organization and error handling
+- **CI/CD**: GitHub Actions implemented for testing, building, and deploying
+- **Performance**: Backend caches API responses for performance
+- **Styling**: Tailwind CSS used for responsive styling on frontend
+- **Testing**: Comprehensive test coverage implemented for both frontend and backend
+- **UX**: Improved loading states, pagination UX, and error treatment implemented
 
 ***
 
 ## Key Commands Summary
 
-| Task                 | Directory | Command                      |
-|----------------------|------------|------------------------------|
-| Install backend deps  | backend    | npm install                 |
-| Run backend dev       | backend    | npm run dev                 |
-| Install frontend deps | frontend   | npm install                 |
-| Run frontend dev      | frontend   | npm run dev                 |
-| Run backend tests     | backend    | npm run test                |
-| Run frontend tests    | frontend   | npm run test                |
-| Run all with Docker   | root       | docker-compose up --build   |
+| Task | Directory | Command |
+|------|-----------|----------|
+| Install backend deps | backend | `npm install` |
+| Run backend dev | backend | `npm run dev` |
+| Install frontend deps | frontend | `npm install` |
+| Run frontend dev | frontend | `npm run dev` |
+| Run backend tests | backend | `npm run test` |
+| Run frontend tests | frontend | `npm run test` |
+| Run all with Docker | root | `docker-compose up --build` |
 
 ***
 
